@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recebimento - Excel</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.4/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <style>
+      body {
+font-family: 'Poppins', sans-serif;
+margin: 0;
+padding: 0;
+background: linear-gradient(to right, #eef2f3, #8e9eab);
+display: flex;
+justify-content: center;
+align-items: center;
+min-height: 100vh;
+}
+
+.container {
+width: 90%;
+max-width: 1100px;
+padding: 30px;
+background: white;
+border-radius: 15px;
+box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+text-align: center;
+}
+
+/* Ajuste para centralizar os inputs, botões e informações acima da tabela */
+.top-section {
+display: flex;
+flex-direction: column;
+align-items: center;
+justify-content: center;
+gap: 15px;
+margin-bottom: 20px;
+width: 100%;
+}
+
+.top-section input[type="file"],
+.top-section input[type="text"] {
+width: 50%;
+padding: 12px;
+border-radius: 8px;
+border: 1px solid #bbb;
+font-size: 1rem;
+box-sizing: border-box;
+transition: all 0.3s;
+text-align: center;
+}
+
+.top-section input[type="file"]:hover,
+.top-section input[type="text"]:hover {
+border-color: #007bff;
+box-shadow: 0 0 8px rgba(0, 123, 255, 0.4);
+}
+
+/* Centralização dos botões de filtro */
+.filter-buttons {
+display: flex;
+justify-content: center;
+flex-wrap: wrap;
+gap: 10px;
+width: 100%;
+}
+
+.toggle-btn {
+background: #007bff;
+color: white;
+padding: 12px 20px;
+border: none;
+border-radius: 8px;
+font-size: 1rem;
+cursor: pointer;
+transition: all 0.3s;
+}
+
+.toggle-btn:hover {
+background: #0056b3;
+transform: scale(1.05);
+}
+
+/* Informações de status centralizadas */
+.status-info {
+font-size: 1.2rem;
+font-weight: bold;
+text-align: center;
+margin-top: 10px;
+}
+
+/* Tabela */
+table {
+width: 100%;
+border-collapse: collapse;
+border-radius: 12px;
+overflow: hidden;
+box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15);
+background: white;
+}
+
+th, td {
+padding: 15px;
+text-align: center;
+font-size: 1rem;
+border-bottom: 1px solid #ddd;
+}
+
+th {
+background: #007bff;
+color: white;
+text-transform: uppercase;
+}
+
+tr:nth-child(even) {
+background-color: #f7f7f7;
+}
+
+tr:hover {
+background-color: #eef2f3;
+transition: all 0.2s;
+}
+
+.status-btn {
+padding: 8px 15px;
+font-size: 1rem;
+border-radius: 8px;
+border: none;
+cursor: pointer;
+transition: all 0.3s;
+}
+
+.status-btn.recebido {
+background: #27ae60;
+color: white;
+}
+
+.status-btn.nao-recebido {
+background: #e74c3c;
+color: white;
+}
+
+.status-btn:hover {
+transform: scale(1.1);
+}
+
+/* Responsividade */
+@media screen and (max-width: 768px) {
+.container {
+width: 95%;
+padding: 20px;
+}
+
+h2 {
+font-size: 1.7rem;
+}
+
+.top-section input[type="file"],
+.top-section input[type="text"] {
+width: 80%;
+}
+
+.toggle-btn {
+font-size: 0.9rem;
+padding: 10px 15px;
+}
+
+table, th, td {
+font-size: 0.9rem;
+}
+
+.status-info {
+font-size: 1rem;
+}
+
+.status-btn {
+font-size: 0.9rem;
+padding: 6px 12px;
+}
+}
+/* Estilos para o botão "Escolher Arquivo" */
+#fileInput {
+  display: block;
+  /* Torna o botão de input de arquivo visível */
+  width: 50%;
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px solid #bbb;
+  font-size: 1rem;
+  cursor: pointer;
+  background-color: #fff;
+  color: #333;
+  transition: all 0.3s ease;
+  text-align: center;
+  margin: 10px 0;
+}
+
+#fileInput:hover {
+  border-color: #007bff;
+  background-color: #f4f8ff;
+  box-shadow: 0 0 8px rgba(0, 123, 255, 0.4);
+}
+
+/* Estilos para o botão "Excluir Arquivo" */
+#deleteFile {
+  background: #e74c3c;
+  color: white;
+  padding: 12px 20px;
+  border-radius: 8px;
+  font-size: 1rem;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-top: 10px;
+}
+
+#deleteFile:hover {
+  background: #c0392b;
+  transform: scale(1.05);
+  box-shadow: 0 0 8px rgba(192, 57, 43, 0.6);
+}
+      
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Upload do Arquivo Excel</h2>
+        <input type="file" id="fileInput" />
+        <button class="delete-btn" id="deleteFile">Excluir Arquivo</button>
+        
+        <h3>Buscar: <input type="text" id="searchBox" placeholder="Digite para buscar..."></h3>
+  
+        <button class="toggle-btn" id="toggleRecebidos">Ocultar Recebidos</button>
+        <button class="toggle-btn" id="toggleCrossdocking">Ocultar Crossdocking</button>
+        <button class="toggle-btn" id="toggleEstocado">Ocultar Estocado</button>
+        
+        <div id="crossdockingCount">Crossdocking - Recebidos: 0, Não Recebidos: 0</div>
+        <div id="estocadoCount">Estocado - Recebidos: 0, Não Recebidos: 0</div>
+        
+        <h2>Crossdocking</h2>
+        <table id="crossdockingTable"></table>
+        
+        <h2>Estocado</h2>
+        <table id="estocadoTable"></table>
+    </div>
+
+    <script>
+        function saveData(data) {
+            localStorage.setItem("excelData", JSON.stringify(data));
+        }
+
+        function loadData() {
+            let storedData = localStorage.getItem("excelData");
+            return storedData ? JSON.parse(storedData) : null;
+        }
+
+        function updateCounts(data) {
+            let crossdockingReceived = 0;
+            let crossdockingNotReceived = 0;
+            let estocadoReceived = 0;
+            let estocadoNotReceived = 0;
+
+            data.forEach(item => {
+                if (item["Tipo de Pedido"] === "CROSSDOCKING") {
+                    if (item["Recebido"] === "SIM") {
+                        crossdockingReceived++;
+                    } else {
+                        crossdockingNotReceived++;
+                    }
+                } else if (item["Tipo de Pedido"] === "ESTOCADO") {
+                    if (item["Recebido"] === "SIM") {
+                        estocadoReceived++;
+                    } else {
+                        estocadoNotReceived++;
+                    }
+                }
+            });
+
+            document.getElementById("crossdockingCount").innerText = `Crossdocking - Recebidos: ${crossdockingReceived}, Não Recebidos: ${crossdockingNotReceived}`;
+            document.getElementById("estocadoCount").innerText = `Estocado - Recebidos: ${estocadoReceived}, Não Recebidos: ${estocadoNotReceived}`;
+        }
+
+        function renderTables(jsonData) {
+            let crossdockingData = jsonData.filter(row => row["Tipo de Pedido"] === "CROSSDOCKING");
+            let estocadoData = jsonData.filter(row => row["Tipo de Pedido"] === "ESTOCADO");
+            
+            function createTable(data, tableId) {
+                let table = document.getElementById(tableId);
+                table.innerHTML = "";
+                if (data.length === 0) return;
+                let headers = Object.keys(data[0]);
+                let thead = table.createTHead();
+                let row = thead.insertRow();
+                headers.forEach(header => {
+                    let th = document.createElement("th");
+                    th.innerText = header;
+                    row.appendChild(th);
+                });
+                let tbody = table.createTBody();
+                data.forEach(item => {
+                    let tr = tbody.insertRow();
+                    headers.forEach(header => {
+                        let td = tr.insertCell();
+                        if (header === "Recebido") {
+                            let button = document.createElement("button");
+                            button.classList.add("status-btn");
+                            button.innerText = item[header] === "SIM" ? "Recebido" : "Não Recebido";
+                            button.classList.add(item[header] === "SIM" ? "recebido" : "nao-recebido");
+                            button.onclick = function() {
+                                item[header] = item[header] === "SIM" ? "NÃO" : "SIM";
+                                button.innerText = item[header] === "SIM" ? "Recebido" : "Não Recebido";
+                                button.classList.toggle("recebido");
+                                button.classList.toggle("nao-recebido");
+                                saveData(jsonData);  // Salva o estado do Excel
+                                updateCounts(jsonData); // Atualiza as contagens
+                            };
+                            td.appendChild(button);
+                        } else {
+                            td.innerText = item[header];
+                        }
+                    });
+                });
+            }
+
+            createTable(crossdockingData, "crossdockingTable");
+            createTable(estocadoData, "estocadoTable");
+        }
+
+        function toggleTableVisibility(id) {
+            let table = document.getElementById(id);
+            let currentState = table.style.display === "none";
+            table.style.display = currentState ? "" : "none";
+            localStorage.setItem(id, currentState ? "visible" : "hidden");
+        }
+
+        document.getElementById('fileInput').addEventListener('change', function(event) {
+            let file = event.target.files[0];
+            let reader = new FileReader();
+            reader.readAsBinaryString(file);
+
+            reader.onload = function(e) {
+                let data = e.target.result;
+                let workbook = XLSX.read(data, { type: 'binary' });
+                let sheetName = workbook.SheetNames[1];
+                let sheet = workbook.Sheets[sheetName];
+                let jsonData = XLSX.utils.sheet_to_json(sheet);
+
+                saveData(jsonData);
+                renderTables(jsonData);
+                updateCounts(jsonData);
+            }
+        });
+
+        document.getElementById("searchBox").addEventListener("input", function() {
+            let searchText = this.value.toLowerCase();
+            $("table tbody tr").each(function() {
+                let rowText = $(this).text().toLowerCase();
+                $(this).toggle(rowText.includes(searchText));
+            });
+        });
+
+        document.getElementById("deleteFile").addEventListener("click", function() {
+            localStorage.removeItem("excelData");
+            location.reload();
+        });
+
+        document.getElementById("toggleCrossdocking").addEventListener("click", function() {
+            toggleTableVisibility("crossdockingTable");
+        });
+
+        document.getElementById("toggleEstocado").addEventListener("click", function() {
+            toggleTableVisibility("estocadoTable");
+        });
+
+        // Recupera os estados de visibilidade das tabelas
+        if (localStorage.getItem("crossdockingTable") === "hidden") {
+            document.getElementById("crossdockingTable").style.display = "none";
+        }
+        if (localStorage.getItem("estocadoTable") === "hidden") {
+            document.getElementById("estocadoTable").style.display = "none";
+        }
+
+        let savedData = loadData();
+        if (savedData) {
+            renderTables(savedData);
+            updateCounts(savedData);
+        }
+    </script>
+</body>
+</html>
