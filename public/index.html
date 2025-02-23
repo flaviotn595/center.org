@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login Da Planilha De Controle </title>
+    <style>
+  /* Configuração básica */
+  body,
+  html {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-family: 'Poppins', sans-serif;
+    background: url('https://telegra.ph/file/fab3db69f9c52efc777d1.jpg') no-repeat center center fixed;
+    background-size: cover;
+    color: #fff;
+    overflow: hidden;
+  }
+
+  /* Container principal */
+  .login-container {
+    background: rgba(0, 0, 0, 0.6);
+    padding: 50px;
+    border-radius: 15px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    width: 100%;
+    max-width: 400px;
+    box-sizing: border-box;
+    text-align: center;
+  }
+
+  /* Estilo do título */
+  .login-container h2 {
+    margin-bottom: 30px;
+    font-size: 28px;
+    font-weight: 600;
+    letter-spacing: 1.5px;
+    color: #fff;
+  }
+
+  /* Estilo dos grupos de entrada */
+  .input-group {
+    position: relative;
+    margin-bottom: 30px;
+  }
+
+  /* Estilo dos inputs */
+  .input-group input {
+    width: 100%;
+    padding: 15px;
+    background: rgba(255, 255, 255, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 8px;
+    font-size: 16px;
+    color: #fff;
+    outline: none;
+    box-shadow: inset 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: border 0.3s ease;
+  }
+
+  /* Efeito ao focar nos inputs */
+  .input-group input:focus {
+    border-color: #ff6b81;
+    background: rgba(255, 255, 255, 0.3);
+  }
+
+  /* Estilo das labels */
+  .input-group label {
+    position: absolute;
+    top: 50%;
+    left: 15px;
+    transform: translateY(-50%);
+    font-size: 16px;
+    color: #ddd;
+    pointer-events: none;
+    transition: all 0.3s ease;
+  }
+
+  /* Animação da label quando o input está em foco */
+  .input-group input:focus~label,
+  .input-group input:valid~label {
+    top: -10px;
+    font-size: 12px;
+    color: #ff6b81;
+  }
+
+  /* Estilo do botão de login */
+  .login-container button {
+    width: 100%;
+    padding: 15px;
+    border: none;
+    border-radius: 8px;
+    background: linear-gradient(45deg, #ff6b81, #ff4757);
+    color: #fff;
+    font-size: 18px;
+    cursor: pointer;
+    transition: background 0.3s ease, box-shadow 0.3s ease;
+  }
+
+  /* Efeito ao passar o mouse sobre o botão */
+  .login-container button:hover {
+    background: linear-gradient(45deg, #ff4757, #ff6b81);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+  }
+
+  /* Efeito ao clicar no botão */
+  .login-container button:active {
+    background: linear-gradient(45deg, #ff6b81, #ff4757);
+    box-shadow: inset 0 4px 10px rgba(0, 0, 0, 0.3);
+  }
+
+  /* Estilo do link de esqueci a senha */
+  .login-container .forgot-password {
+    display: block;
+    margin-top: 20px;
+    font-size: 14px;
+    color: #ff6b81;
+    text-decoration: none;
+    transition: color 0.3s ease;
+  }
+
+  /* Efeito ao passar o mouse sobre o link */
+  .login-container .forgot-password:hover {
+    color: #ff4757;
+  }
+
+  /* Estilos responsivos */
+  @media (max-width: 768px) {
+    .login-container {
+      padding: 40px;
+      margin: 10px;
+    }
+
+    .login-container h2 {
+      font-size: 24px;
+    }
+
+    .input-group input {
+      padding: 12px;
+      font-size: 14px;
+    }
+
+    .login-container button {
+      padding: 12px;
+      font-size: 16px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .login-container {
+      padding: 30px;
+    }
+
+    .login-container h2 {
+      font-size: 20px;
+    }
+
+    .input-group input {
+      padding: 10px;
+      font-size: 14px;
+    }
+
+    .login-container button {
+      padding: 10px;
+      font-size: 14px;
+    }
+  }
+
+  /* Estilos para a modal de boas-vindas */
+  .modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0, 0, 0, 0.7);
+  }
+
+  .modal-content {
+    background-color: #fff;
+    margin: 15% auto;
+    padding: 20px;
+    border: 1px solid #888;
+    width: 80%;
+    max-width: 400px;
+    border-radius: 10px;
+    text-align: center;
+    font-family: 'Poppins', sans-serif;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+  }
+
+  .modal-content h3 {
+    margin: 0;
+    padding: 0;
+    font-size: 22px;
+    color: #333;
+  }
+
+  .modal-content p {
+    margin: 20px 0;
+    font-size: 18px;
+    color: #666;
+  }
+
+  .modal-content button {
+    padding: 10px 20px;
+    background-color: #ff4757;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background-color 0.3s ease;
+  }
+
+  .modal-content button:hover {
+    background-color: #ff6b81;
+  }
+</style>
+</head>
+<body>
+    <div class="login-container">
+        <h2>Login</h2>
+        <form id="loginForm">
+            <div class="input-group">
+                <input type="text" id="username" required>
+                <label for="username">Usuario</label>
+            </div>
+            <div class="input-group">
+                <input type="password" id="password" required>
+                <label for="password">Senha</label>
+            </div>
+            <button type="submit">Login</button>
+            <a href="" class="forgot-password">Fale com Zuleika ou Joao Ou Junior Eles te darão a senha de acesso para planilha</a>
+        </form>
+    </div>
+
+    <!-- Modal de Boas-Vindas -->
+    <div id="welcomeModal" class="modal">
+        <div class="modal-content">
+            <h3 id="welcomeTitle"></h3>
+            <p id="welcomeMessage"></p>
+            <button onclick="closeModal()">OK</button>
+        </div>
+    </div>
+<script>
+    let messages = {};
+
+    // Carrega o JSON de frases diretamente
+    fetch('frases.json')
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Erro ao carregar o arquivo JSON');
+            }
+            return response.json();
+        })
+        .then(data => {
+            messages = data;  // Armazena o conteúdo do JSON em 'messages'
+            console.log('Mensagens carregadas:', messages);  // Verificação se as mensagens foram carregadas
+        })
+        .catch(error => console.error('Erro ao carregar o JSON:', error));
+
+    document.getElementById("loginForm").addEventListener("submit", function(event){
+        event.preventDefault();
+
+        const username = document.getElementById("username").value.trim();
+        const password = document.getElementById("password").value.trim();
+
+        const users = {
+            "Zuleika": "1234",
+            "Joao": "1234",
+            "Carlos": "1234",
+            "Operacao": "1234",
+            "Admin": "Admin",
+            "Junior": "1234"
+        };
+
+        console.log('Usuário digitado:', username);
+
+        if (users[username] && users[username] === password) {
+            if (messages[username] && messages[username].length > 0) {
+                // Seleciona uma frase aleatória do conjunto de mensagens do usuário
+                const randomIndex = Math.floor(Math.random() * messages[username].length);
+                const randomMessage = messages[username][randomIndex];
+
+                console.log('Mensagem selecionada:', randomMessage);
+
+                // Exibe a modal com a mensagem de boas-vindas
+                document.getElementById('welcomeTitle').innerText = `Bem-vindo(a), ${username}!`;
+                document.getElementById('welcomeMessage').innerText = randomMessage;
+                document.getElementById('welcomeModal').style.display = 'block';
+            } else {
+                console.error("Nenhuma mensagem disponível para este usuário:", username);
+                alert("Nenhuma mensagem disponível para este usuário.");
+            }
+        } else {
+            alert("Nome de usuário ou senha inválidos. Tente novamente.");
+        }
+    });
+
+    function closeModal() {
+        document.getElementById('welcomeModal').style.display = 'none';
+        window.location.href = "tabela.html";
+    }
+</script>
+
+</body>
+</html>

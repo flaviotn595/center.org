@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestão de Docas</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #121212;
+            color: #e0e0e0;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #1e1e1e;
+            box-shadow: inset 0 0 10px #000000, 0 0 15px #000000;
+            border-radius: 10px;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #00aaff;
+            font-size: 2em;
+            border-bottom: 2px solid #007BFF;
+            padding-bottom: 10px;
+            text-shadow: 2px 2px 4px #000000;
+        }
+
+        .dock-list {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        .dock-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 10px;
+            margin-bottom: 10px;
+            border: 1px solid #555;
+            border-radius: 8px;
+            background-color: #2a2a2a;
+            transition: background-color 0.3s ease, transform 0.3s ease;
+            box-shadow: inset 0 0 5px #000000, 0 0 10px #000000;
+        }
+
+        .dock-item:hover {
+            background-color: #444444;
+            transform: translateY(-2px);
+        }
+
+        .dock-button {
+            padding: 10px 20px;
+            font-size: 16px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            outline: none;
+            box-shadow: 0 0 10px #000000;
+        }
+
+        .dock-button:focus {
+            box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+        }
+
+        .Livre {
+            background-color: #4CAF50;
+            color: white;
+        }
+
+        .Ocupado {
+            background-color: #f44336;
+            color: white;
+        }
+
+        .Manutenção {
+            background-color: #ff9800;
+            color: white;
+        }
+
+        .dock-name {
+            font-weight: bold;
+            font-size: 1.2em;
+            color: #bbbbbb;
+        }
+
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Gestão de Docas</h1>
+        <ul class="dock-list" id="dockList">
+            <!-- Lista de docas será preenchida aqui -->
+        </ul>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        const socket = io();
+
+        // Lista de status possíveis
+        const statuses = ['Livre', 'Ocupado', 'Manutenção'];
+
+        // Função para alternar o status da doca
+        function toggleStatus(button, dock) {
+            const currentStatus = button.innerText;
+            const currentIndex = statuses.indexOf(currentStatus);
+            const nextStatus = statuses[(currentIndex + 1) % statuses.length];
+
+            button.innerText = nextStatus;
+            button.className = `dock-button ${nextStatus}`;
+
+            // Enviar atualização para o servidor
+            socket.emit('updateStatus', { dock, status: nextStatus });
+        }
+
+        // Preenche a lista de docas
+        function populateDockList(dockStatus) {
+            const dockList = document.getElementById('dockList');
+            dockList.innerHTML = '';
+
+            for (let i = 41; i <= 65; i++) {
+                const li = document.createElement('li');
+                li.className = 'dock-item';
+
+                const span = document.createElement('span');
+                span.innerText = `Doca ${i}`;
+                span.className = 'dock-name';
+
+                const button = document.createElement('button');
+                button.innerText = dockStatus[i] || 'Livre';
+                button.className = `dock-button ${button.innerText}`;
+                button.onclick = () => toggleStatus(button, i);
+
+                li.appendChild(span);
+                li.appendChild(button);
+
+                dockList.appendChild(li);
+            }
+        }
+
+        // Recebe o estado inicial das docas
+        socket.on('initialStatus', (dockStatus) => {
+            populateDockList(dockStatus);
+        });
+
+        // Atualiza o status de uma doca em tempo real
+        socket.on('statusUpdated', (data) => {
+            const { dock, status } = data;
+            const button = document.querySelector(`.dock-item:nth-child(${dock - 40}) .dock-button`);
+            if (button) {
+                button.innerText = status;
+                button.className = `dock-button ${status}`;
+            }
+        });
+    </script>
+</body>
+</html>

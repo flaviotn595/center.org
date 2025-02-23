@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Planilha de Controle</title>
+    <style>
+/* Estilo geral */
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #121212;
+    color: #cfcfcf;
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    box-sizing: border-box;
+}
+
+.container {
+    width: 90%;
+    max-width: 1200px;
+    margin: 20px auto;
+    padding: 20px;
+    background-color: #1e1e1e;
+    box-shadow: inset 0 0 10px #000000, 0 0 15px #000000;
+    border-radius: 10px;
+    box-sizing: border-box;
+    flex-grow: 1;
+    overflow-x: auto; /* Permite que a tabela seja rolada horizontalmente se necessário */
+}
+
+h1 {
+    text-align: center;
+    margin-bottom: 20px;
+    color: #00aaff;
+    font-size: 2rem;
+    font-weight: bold;
+    text-shadow: 2px 2px 4px #000000;
+}
+
+.count-container {
+    text-align: center;
+    margin-bottom: 20px;
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: #6ba4ff;
+}
+
+.button-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 20px;
+    width: 100%;
+}
+
+.button-container .left-buttons, .button-container .right-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-bottom: 10px;
+    width: 100%;
+}
+
+.button-container button {
+    margin: 10px 5px;
+    padding: 12px 20px;
+    font-size: 1rem;
+    cursor: pointer;
+    border: none;
+    border-radius: 5px;
+    background-color: #007BFF;
+    color: white;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+    box-shadow: 0 0 10px #000000;
+    flex-grow: 1;
+    max-width: 200px;
+    width: 100%;
+}
+
+.button-container button:hover {
+    background-color: #0056b3;
+    transform: translateY(-2px);
+}
+
+.button-container .clear {
+    background-color: #b02a37;
+}
+
+.button-container .clear:hover {
+    background-color: #9c1f2a;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+    table-layout: auto; /* Permite que as colunas se ajustem automaticamente */
+}
+
+th, td {
+    border: 1px solid #444;
+    padding: 12px;
+    text-align: left;
+    white-space: nowrap; /* Evita que o texto quebre e cause problemas de layout */
+}
+
+th {
+    background-color: #007BFF;
+    color: white;
+    text-shadow: 1px 1px 3px #000000;
+}
+
+td[contenteditable="true"] {
+    background-color: #2b2b2b;
+    color: #cfcfcf;
+    transition: background-color 0.2s ease;
+}
+
+td[contenteditable="true"]:focus {
+    background-color: #34495e;
+    outline: none;
+    border: 1px solid #6ba4ff;
+}
+
+/* Responsividade para diferentes tamanhos de tela */
+@media (max-width: 1024px) {
+    h1 {
+        font-size: 1.8rem;
+    }
+
+    .button-container button {
+        font-size: 0.9rem;
+        padding: 10px 18px;
+    }
+
+    th, td {
+        padding: 10px;
+    }
+
+    .count-container {
+        font-size: 1rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .container {
+        padding: 15px;
+    }
+
+    h1 {
+        font-size: 1.5rem;
+    }
+
+    .button-container button {
+        margin: 8px 4px;
+        padding: 8px 16px;
+        font-size: 0.8rem;
+    }
+
+    th, td {
+        padding: 8px;
+    }
+
+    .count-container {
+        font-size: 0.9rem;
+    }
+}
+
+@media (max-width: 480px) {
+    h1 {
+        font-size: 1.2rem;
+    }
+
+    .button-container button {
+        padding: 6px 12px;
+        font-size: 0.7rem;
+    }
+
+    th, td {
+        padding: 6px;
+        font-size: 0.8rem;
+    }
+
+    .count-container {
+        font-size: 0.8rem;
+    }
+}
+
+/* Estilização do modal */
+.modal {
+  display: none;
+  position: fixed;
+  z-index: 1000;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.7); /* Fundo semi-transparente para efeito de esmaecimento */
+}
+
+.modal-content {
+  background-color: #1d1d1d; /* Fundo do modal em tom escuro */
+  margin: 15% auto;
+  padding: 20px;
+  border-radius: 10px;
+  width: 320px;
+  text-align: center;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
+  color: #f5f5f5; /* Texto claro dentro do modal */
+}
+
+.modal-buttons {
+  display: flex;
+  justify-content: space-around;
+  margin-top: 20px;
+}
+
+.modal-buttons button {
+  padding: 12px 25px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+/* Botão de confirmação (Sim) */
+#confirmButton {
+  background-color: #f44336; /* Vermelho forte para ação */
+  color: white;
+  transition: background-color 0.3s ease;
+}
+
+/* Botão de cancelamento (Não) */
+#cancelButton {
+  background-color: #616161; /* Cinza escuro para botão de cancelamento */
+  color: white;
+  transition: background-color 0.3s ease;
+}
+
+/* Efeito de hover (passar o mouse) nos botões */
+#confirmButton:hover {
+  background-color: #d32f2f; /* Vermelho mais escuro ao passar o mouse */
+}
+
+#cancelButton:hover {
+  background-color: #757575; /* Cinza mais claro ao passar o mouse */
+}
+
+/* Botão de Finalizar */
+button {
+  background-color: #333; /* Fundo mais escuro para os botões */
+  color: #f0f0f0; /* Texto claro */
+  padding: 15px;
+  font-size: 16px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  margin: 10px 0;
+  width: 150px;
+  transition: background-color 0.3s ease;
+}
+
+/* Hover para os botões de Finalizar e Limpar */
+button:hover {
+  background-color: #444; /* Cor mais escura ao passar o mouse */
+}
+</style>
+</head>
+<body>
+    <div class="container">
+        <h1>Planilha de Controle</h1>
+        <div class="button-container">
+            <div class="left-buttons">
+                <button onclick="saveData()">Salvar</button>
+                <button onclick="window.location.href='saved-files.html'">Ver Lista</button>
+                <button onclick="window.location.href='dock-management.html'">Gestão de Docas</button>
+                <!-- Novo botão Dashboard -->
+                <button onclick="window.location.href='dashboard.html'" style="background-color: #28a745; margin-top: 15px;">Dashboard</button>
+            </div>
+<div class="right-buttons">
+  <button onclick="showConfirmation('finalize')">Finalizar</button>
+  <button class="clear" onclick="showConfirmation('clear')">Limpar</button>
+</div>
+
+<!-- Modal personalizado -->
+<div id="confirmationModal" class="modal">
+  <div class="modal-content">
+    <p id="confirmationMessage"></p>
+    <div class="modal-buttons">
+      <button id="confirmButton">Sim</button>
+      <button id="cancelButton" onclick="closeModal()">Não</button>
+    </div>
+  </div>
+</div>
+
+
+
+        <div id="fCount" class="count-container"></div>
+        <div id="nfCount" class="count-container"></div>
+        <div id="turno1Count" class="count-container"></div>
+        <div id="turno2Count" class="count-container"></div>
+        <table id="dataTable">
+            <thead>
+                <tr>
+                    <th>Data</th>
+                    <th>Fornecedor</th>
+                    <th>Motorista</th>
+                    <th>Conferente</th>
+                    <th>Turno</th>
+                    <th>Carga</th>
+                    <th>Volume</th>
+                    <th>Tipo</th>
+                    <th>Palete</th>
+                    <th>Doca</th>
+                    <th>Avaria</th>
+                    <th>Devolução</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody id="tableBody">
+                <!-- Linhas serão geradas por JavaScript -->
+            </tbody>
+        </table>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+           const socket = io();
+           /*
+           function confirmClearTable() {
+  // Abre uma janela de confirmação
+  const userConfirmed = confirm("Tem certeza de que deseja limpar a tabela?");
+  if (userConfirmed) {
+    clearTable(); // Chama a função para limpar a tabela
+  }
+}
+
+function clearTable() {
+  // Aqui você deve implementar a lógica para limpar a tabela
+  console.log("Tabela limpa!"); // Apenas para teste
+  alert("Tabela foi limpa com sucesso!"); // Mensagem de confirmação
+}
+
+function confirmFinalizeData() {
+  // Abre uma janela de confirmação
+  const userConfirmed = confirm("Tem certeza de que deseja finalizar os dados?");
+  if (userConfirmed) {
+    finalizeData(); // Chama a função para finalizar os dados
+  }
+}
+
+function finalizeData() {
+  // Aqui você deve implementar a lógica para finalizar os dados
+  console.log("Dados finalizados!"); // Apenas para teste
+  alert("Dados foram finalizados com sucesso!"); // Mensagem de confirmação
+}
+
+*/
+
+function showConfirmation(action) {
+  const modal = document.getElementById('confirmationModal');
+  const message = document.getElementById('confirmationMessage');
+  const confirmButton = document.getElementById('confirmButton');
+
+  if (action === 'clear') {
+    message.textContent = "Tem certeza de que deseja limpar a tabela?";
+    confirmButton.onclick = () => {
+      clearTable();
+      closeModal();
+    };
+  } else if (action === 'finalize') {
+    message.textContent = "Tem certeza de que deseja finalizar os dados?";
+    confirmButton.onclick = () => {
+      finalizeData();
+      closeModal();
+    };
+  }
+
+  modal.style.display = 'block';
+}
+
+function closeModal() {
+  const modal = document.getElementById('confirmationModal');
+  modal.style.display = 'none';
+}
+
+function clearTable() {
+  console.log("Tabela limpa!");
+  alert("Tabela foi limpa com sucesso!"); // Mensagem de confirmação
+}
+
+function finalizeData() {
+  console.log("Dados finalizados!");
+  alert("Dados foram finalizados com sucesso!"); // Mensagem de confirmação
+}
+
+        function saveFCount(fCount, nfCount, turno1Count, turno2Count) {
+            localStorage.setItem('fCount', fCount);
+            localStorage.setItem('nfCount', nfCount);
+            localStorage.setItem('turno1Count', turno1Count);
+            localStorage.setItem('turno2Count', turno2Count);
+            socket.emit('updateCount', { fCount, nfCount, turno1Count, turno2Count });
+        }
+
+        function loadFCount() {
+            const fCount = localStorage.getItem('fCount');
+            const nfCount = localStorage.getItem('nfCount');
+            const turno1Count = localStorage.getItem('turno1Count');
+            const turno2Count = localStorage.getItem('turno2Count');
+            if (fCount !== null && nfCount !== null && turno1Count !== null && turno2Count !== null) {
+                document.getElementById('fCount').innerText = `Carros finalizados: ${fCount}`;
+                document.getElementById('nfCount').innerText = `Carros não finalizados: ${nfCount}`;
+                document.getElementById('turno1Count').innerText = `🌅 Turno Da Manhã: ${turno1Count}`;
+                document.getElementById('turno2Count').innerText = `🌇 Turno Da Tarde: ${turno2Count}`;
+            }
+        }
+
+        async function saveData() {
+            const table = document.getElementById('dataTable');
+            const rows = table.rows;
+            const data = [];
+            let fCount = 0;
+            let nfCount = 0;
+            let turno1Count = 0;
+            let turno2Count = 0;
+
+            // Captura os títulos
+            const header = [];
+            for (const cell of rows[0].cells) {
+                header.push(cell.innerText);
+            }
+            data.push(header);
+
+            // Captura os dados
+            for (let i = 1; i < rows.length; i++) {
+                const row = rows[i];
+                const rowData = [];
+                for (const cell of row.cells) {
+                    rowData.push(cell.innerText);
+                }
+                data.push(rowData);
+
+                // Conta quantos "F" existem na coluna "Status" e quantos não finalizados com "Data" preenchida
+                const dataCell = row.cells[0].innerText.trim();
+                const statusCell = row.cells[12].innerText.trim();
+                const turnoCell = row.cells[4].innerText.trim();
+                if (dataCell) {
+                    if (statusCell === 'F') {
+                        fCount++;
+                    } else {
+                        nfCount++;
+                    }
+                }
+                
+                if (turnoCell === '1') {
+                    turno1Count++;
+                } else if (turnoCell === '2') {
+                    turno2Count++;
+                }
+            }
+
+            const response = await fetch('/save', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ data })
+            });
+
+            if (response.ok) {
+                alert('Dados salvos localmente!');
+                // Atualiza a contagem de "Finalizado", "Não Finalizado", e turnos na tela
+                document.getElementById('fCount').innerText = `Carros finalizados: ${fCount}`;
+                document.getElementById('nfCount').innerText = `Carros não finalizados: ${nfCount}`;
+                document.getElementById('turno1Count').innerText = `🌅 Turno Da Manhã: ${turno1Count}`;
+                document.getElementById('turno2Count').innerText = `🌇 Turno Da Tarde: ${turno2Count}`;
+                saveFCount(fCount, nfCount, turno1Count, turno2Count); // Salva a contagem no localStorage e envia via Socket.IO
+                localStorage.setItem('tableData', JSON.stringify(data)); // Salva os dados da tabela no localStorage
+                socket.emit('updateTable', data); // Emite o evento para atualizar a tabela inteira
+            } else {
+                alert('Erro ao salvar os dados!');
+            }
+        }
+
+        async function finalizeData() {
+            const table = document.getElementById('dataTable');
+            const rows = table.rows;
+            const data = [];
+
+            // Captura os títulos
+            const header = [];
+            for (const cell of rows[0].cells) {
+                header.push(cell.innerText);
+            }
+            data.push(header);
+
+            // Captura os dados
+            for (let i = 1; i < rows.length; i++) {
+                const row = rows[i];
+                const rowData = [];
+                for (const cell of row.cells) {
+                    rowData.push(cell.innerText);
+                }
+                data.push(rowData);
+            }
+
+            const response = await fetch('/finalize', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ data })
+            });
+
+            if (response.ok) {
+                alert('Dados salvos e tabela limpa!');
+                clearTable(); // Limpa a tabela após salvar os dados
+                document.getElementById('fCount').innerText = ''; // Limpa a contagem de "Finalizado"
+                document.getElementById('nfCount').innerText = ''; // Limpa a contagem de "Não Finalizado"
+                document.getElementById('turno1Count').innerText = ''; // Limpa a contagem de turnos
+                document.getElementById('turno2Count').innerText = ''; // Limpa a contagem de turnos
+                localStorage.removeItem('fCount'); // Remove a contagem do localStorage
+                localStorage.removeItem('nfCount'); // Remove a contagem do localStorage
+                localStorage.removeItem('turno1Count'); // Remove a contagem do localStorage
+                localStorage.removeItem('turno2Count'); // Remove a contagem do localStorage
+                localStorage.removeItem('tableData'); // Remove os dados da tabela do localStorage
+                socket.emit('updateTable', []); // Atualiza a tabela em todos os clientes
+            } else {
+                alert('Erro ao salvar os dados!');
+            }
+        }
+
+        async function clearTable() {
+            const response = await fetch('/clear', {
+                method: 'POST'
+            });
+
+            if (response.ok) {
+                clearTableLocally();
+                alert('Tabela limpa com sucesso!');
+                socket.emit('updateTable', []); // Atualiza a tabela em todos os clientes
+            } else {
+                alert('Erro ao limpar a tabela!');
+            }
+        }
+
+        function clearTableLocally() {
+            const table = document.getElementById('dataTable');
+            for (let i = 1; i < table.rows.length; i++) {
+                const row = table.rows[i];
+                for (const cell of row.cells) {
+                    cell.innerText = '';
+                }
+            }
+            localStorage.removeItem('tableData');
+            document.getElementById('fCount').innerText = ''; // Limpa a contagem de "Finalizado" no topo
+            document.getElementById('nfCount').innerText = ''; // Limpa a contagem de "Não Finalizado" no topo
+            document.getElementById('turno1Count').innerText = ''; // Limpa a contagem de turnos
+            document.getElementById('turno2Count').innerText = ''; // Limpa a contagem de turnos
+            localStorage.removeItem('fCount'); // Remove a contagem do localStorage
+            localStorage.removeItem('nfCount'); // Remove a contagem do localStorage
+            localStorage.removeItem('turno1Count'); // Remove a contagem do localStorage
+            localStorage.removeItem('turno2Count'); // Remove a contagem do localStorage
+        }
+
+        function loadData() {
+            const jsonData = localStorage.getItem('tableData');
+            if (jsonData) {
+                const data = JSON.parse(jsonData);
+                populateTable(data);
+            }
+        }
+
+        function populateTable(data) {
+            const table = document.getElementById('dataTable');
+            for (let i = 1; i < table.rows.length; i++) {
+                const row = table.rows[i];
+                for (let j = 0; j < data[i].length; j++) {
+                    row.cells[j].innerText = data[i][j];
+                }
+            }
+        }
+
+        socket.on('updateCount', (data) => {
+            document.getElementById('fCount').innerText = `Carros finalizados: ${data.fCount}`;
+            document.getElementById('nfCount').innerText = `Carros não finalizados: ${data.nfCount}`;
+            document.getElementById('turno1Count').innerText = `🌅 Turno Da Manhã: ${data.turno1Count}`;
+            document.getElementById('turno2Count').innerText = `🌇 Turno Da Tarde: ${data.turno2Count}`;
+        });
+
+        socket.on('updateTable', (data) => {
+            localStorage.setItem('tableData', JSON.stringify(data));
+            populateTable(data);
+        });
+
+        window.onload = function() {
+            socket.on('updateTable', (data) => {
+                populateTable(data);
+                localStorage.setItem('tableData', JSON.stringify(data));
+            });
+
+            socket.on('clearTable', () => {
+                clearTableLocally();
+            });
+
+            loadData();
+            loadFCount(); // Carrega a contagem de "Finalizado" do localStorage
+
+            // Preenche a tabela com 100 linhas em branco
+            const tableBody = document.getElementById('tableBody');
+            for (let i = 0; i < 100; i++) {
+                const row = document.createElement('tr');
+                for (let j = 0; j < 13; j++) {  // Ajustado para incluir as novas colunas
+                    const cell = document.createElement('td');
+                    cell.setAttribute('contenteditable', 'true');
+                    row.appendChild(cell);
+                }
+                tableBody.appendChild(row);
+            }
+        };
+    </script>
+</body>
+</html>

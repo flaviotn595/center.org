@@ -1,0 +1,26 @@
+body {
+    font-family: Arial, sans-serif;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+th, td {
+    padding: 8px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+}
+
+button {
+    padding: 5px 10px;
+    background-color: #ffcc00; /* Cor para 'Aguardando liberação' */
+    border: none;
+    cursor: pointer;
+}
+
+button.liberado {
+    background-color: #4CAF50; /* Cor para 'Liberado' */
+    color: white;
+}

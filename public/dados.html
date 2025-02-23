@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body>
+    <div class="container">
+        <h1>Liberação de Motoristas</h1>
+        <button class="delete-button" onclick="limparHistorico()">Delete</button>
+            <style>
+      body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #121212;
+    color: #e0e0e0;
+    margin: 0;
+    padding: 20px;
+    display: flex;
+    justify-content: center;
+}
+
+.container {
+    max-width: 600px;
+    width: 100%;
+    padding: 20px;
+    background-color: #1e1e1e;
+    box-shadow: inset 0 0 10px #000000, 0 0 15px #000000;
+    border-radius: 10px;
+    text-align: center; /* Centraliza o conteúdo dentro do contêiner */
+}
+
+h1 {
+    margin-bottom: 20px;
+    color: #00aaff;
+    font-size: 2em;
+    border-bottom: 2px solid #007BFF;
+    padding-bottom: 10px;
+    text-shadow: 2px 2px 4px #000000;
+}
+
+.delete-button {
+    background-color: #f44336;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+    margin-bottom: 20px;
+    box-shadow: 0 0 10px #000000;
+    transition: background-color 0.3s ease;
+}
+
+.delete-button:hover {
+    background-color: #d32f2f;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    background-color: #1e1e1e;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: inset 0 0 10px #000000, 0 0 15px #000000;
+}
+
+th, td {
+    padding: 15px;
+    border-bottom: 1px solid #555;
+    text-align: center;
+    color: #bbbbbb;
+}
+
+th {
+    background-color: #007bff;
+    color: white;
+    font-size: 1em;
+}
+
+.status-button {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    color: white;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    box-shadow: 0 0 10px #000000;
+}
+
+.aguardando {
+    background-color: #ff9800;
+}
+
+.liberado {
+    background-color: #4CAF50;
+}
+
+  .saiu {
+    background-color: #f44336;
+  }
+
+.data-hora {
+    display: block;
+    margin-top: 5px;
+    font-size: 0.9em;
+    color: #666;
+}
+
+@media (max-width: 768px) {
+    .container {
+        padding: 15px;
+    }
+
+    th, td {
+        padding: 10px;
+    }
+
+    h1 {
+        font-size: 1.5em;
+    }
+
+    .status-button, .delete-button {
+        padding: 8px 16px;
+        font-size: 14px;
+    }
+}
+
+    </style>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Motorista</th>
+                    <th>Fornecedor</th>
+                    <th>Doca</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody id="dadosTabela">
+                <!-- Dados serão carregados aqui via JavaScript -->
+            </tbody>
+        </table>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+ <script>
+    const socket = io();
+
+    async function carregarDados() {
+        try {
+            const response = await fetch('/dados-lib');
+            if (!response.ok) {
+                throw new Error(`Erro ao carregar o arquivo JSON: ${response.status}`);
+            }
+            const dados = await response.json();
+            const tbody = document.getElementById('dadosTabela');
+            
+            dados.slice(1).forEach((item, index) => {
+                const motorista = item[2];
+                const fornecedor = item[1];
+                const doca = item[9];
+
+                const row = document.createElement('tr');
+                
+                row.innerHTML = `
+                    <td>${motorista}</td>
+                    <td>${fornecedor}</td>
+                    <td>${doca}</td>
+                    <td>
+                        <button class="status-button aguardando" id="botao-${index}" onclick="atualizarStatus(${index})">
+                            Aguardando Liberação
+                        </button>
+                        <span id="hora-${index}" class="data-hora"></span>
+                    </td>
+                `;
+                
+                tbody.appendChild(row);
+            });
+        } catch (error) {
+            console.error("Erro ao carregar os dados JSON:", error);
+        }
+    }
+
+    function atualizarStatus(index) {
+        const botao = document.getElementById(`botao-${index}`);
+        let novoStatus, dataHora;
+
+        if (botao.classList.contains('aguardando')) {
+            novoStatus = 'liberado';
+            botao.className = 'status-button liberado';
+            botao.textContent = 'Liberação Concluída';
+        } else if (botao.classList.contains('liberado')) {
+            novoStatus = 'saiu';
+            botao.className = 'status-button saiu';
+            botao.textContent = 'Doca Ocupada';
+        } else {
+            novoStatus = 'aguardando';
+            botao.className = 'status-button aguardando';
+            botao.textContent = 'Aguardando Liberação';
+        }
+
+        dataHora = new Date().toLocaleString("pt-BR");
+        document.getElementById(`hora-${index}`).textContent = dataHora;
+
+        socket.emit('atualizarStatus', { index, novoStatus, dataHora });
+    }
+
+    function limparHistorico() {
+        const botoes = document.querySelectorAll('.status-button');
+        const horas = document.querySelectorAll('.data-hora');
+        
+        botoes.forEach(botao => {
+            botao.className = 'status-button aguardando';
+            botao.textContent = 'Aguardando Liberação';
+        });
+        
+        horas.forEach(hora => {
+            hora.textContent = '';
+        });
+
+        socket.emit('limparHistorico');
+    }
+
+    socket.on('estadoInicial', (statusBotoes) => {
+        for (const index in statusBotoes) {
+            const botao = document.getElementById(`botao-${index}`);
+            const dataHoraElemento = document.getElementById(`hora-${index}`);
+            if (botao) {
+                const { novoStatus, dataHora } = statusBotoes[index];
+                botao.className = `status-button ${novoStatus}`;
+                botao.textContent = novoStatus === 'aguardando' ? 'Aguardando Liberação' : 
+                                    novoStatus === 'liberado' ? 'Liberação Concluída' : 'Doca Ocupada';
+                dataHoraElemento.textContent = dataHora || '';
+            }
+        }
+    });
+
+    socket.on('statusAtualizado', ({ index, novoStatus, dataHora }) => {
+        const botao = document.getElementById(`botao-${index}`);
+        const dataHoraElemento = document.getElementById(`hora-${index}`);
+        if (botao) {
+            botao.className = `status-button ${novoStatus}`;
+            botao.textContent = novoStatus === 'aguardando' ? 'Aguardando Liberação' : 
+                                novoStatus === 'liberado' ? 'Liberação Concluída' : 'Doca Ocupada';
+            dataHoraElemento.textContent = dataHora;
+        }
+    });
+
+    socket.on('historicoLimpo', () => {
+        limparHistorico();
+    });
+
+    carregarDados();
+</script>
+
+</body>
+</html>

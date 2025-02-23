@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Arquivos Salvos</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #121212;
+            color: #e0e0e0;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #1e1e1e;
+            box-shadow: inset 0 0 10px #000000, 0 0 15px #000000;
+            border-radius: 8px;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #00aaff;
+            text-shadow: 2px 2px 4px #000000;
+        }
+
+        .search-container {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+
+        .search-container input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #555;
+            border-radius: 4px;
+            font-size: 16px;
+            background-color: #2a2a2a;
+            color: #e0e0e0;
+        }
+
+        .search-container button {
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            cursor: pointer;
+            border-radius: 4px;
+            margin-left: 10px;
+            transition: background-color 0.3s ease;
+            box-shadow: 0 0 10px #000000;
+        }
+
+        .search-container button:hover {
+            background-color: #0056b3;
+        }
+
+        .file-list {
+            list-style-type: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .file-list li {
+            margin: 10px 0;
+            padding: 10px;
+            border: 1px solid #555;
+            border-radius: 4px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: #333333;
+            transition: background-color 0.3s ease;
+            box-shadow: inset 0 0 5px #000000, 0 0 10px #000000;
+        }
+
+        .file-list li:hover {
+            background-color: #444444;
+        }
+
+        .file-list li.selected {
+            background-color: #ffbb33;
+            color: #000;
+        }
+
+        .file-list a {
+            text-decoration: none;
+            color: #00aaff;
+            flex-grow: 1;
+        }
+
+        .file-list a:hover {
+            text-decoration: underline;
+        }
+
+        .file-list button {
+            background-color: #dc3545;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            cursor: pointer;
+            border-radius: 4px;
+            margin-left: 10px;
+            transition: background-color 0.3s ease;
+            box-shadow: 0 0 10px #000000;
+        }
+
+        .file-list button:hover {
+            background-color: #c82333;
+        }
+
+        .actions {
+            text-align: right;
+            margin-top: 20px;
+        }
+
+        .actions button {
+            background-color: #28a745;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            cursor: pointer;
+            border-radius: 4px;
+            margin-left: 10px;
+            transition: background-color 0.3s ease;
+            box-shadow: 0 0 10px #000000;
+        }
+
+        .actions button:hover {
+            background-color: #218838;
+        }
+    </style>
+    <script>
+        async function loadFileList() {
+            const response = await fetch('/list-files');
+            const files = await response.json();
+            displayFiles(files);
+        }
+
+        function displayFiles(files) {
+            const fileList = document.getElementById('fileList');
+            fileList.innerHTML = '';
+            files.forEach(file => {
+                const listItem = document.createElement('li');
+                const link = document.createElement('a');
+                link.href = `/saves/${file}`;
+                link.textContent = file;
+
+                const deleteButton = document.createElement('button');
+                deleteButton.textContent = 'Excluir';
+                deleteButton.onclick = () => deleteFile(file);
+
+                listItem.appendChild(link);
+                listItem.appendChild(deleteButton);
+                fileList.appendChild(listItem);
+            });
+        }
+
+        async function deleteFile(file) {
+            const response = await fetch(`/delete-file?name=${file}`, {
+                method: 'DELETE'
+            });
+            if (response.ok) {
+                loadFileList();
+            } else {
+                alert('Erro ao deletar o arquivo.');
+            }
+        }
+
+        function searchFiles() {
+            const query = document.getElementById('searchInput').value.toLowerCase();
+            const items = document.querySelectorAll('.file-list li');
+
+            let found = false;
+            items.forEach(item => {
+                const fileName = item.querySelector('a').textContent.toLowerCase();
+                if (fileName.includes(query)) {
+                    item.style.display = '';
+                    item.classList.add('selected');
+                    found = true;
+                } else {
+                    item.style.display = 'none';
+                    item.classList.remove('selected');
+                }
+            });
+
+            if (!found) {
+                alert('Arquivo não encontrado.');
+            }
+        }
+
+        window.onload = loadFileList;
+    </script>
+</head>
+<body>
+    <div class="container">
+        <h1>Arquivos Salvos</h1>
+        <div class="search-container">
+            <input type="text" id="searchInput" placeholder="Pesquisar arquivos...">
+            <button onclick="searchFiles()">🔍</button>
+        </div>
+        <ul id="fileList" class="file-list"></ul>
+        <div class="actions">
+            <button onclick="loadFileList()">Atualizar Lista</button>
+        </div>
+    </div>
+</body>
+</html>
